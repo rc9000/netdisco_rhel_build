@@ -1,0 +1,63 @@
+--- /opt/IBM/tivoli/netdisco/netdisco_upgrade_test/nd2/lib/perl5/App/Netdisco/Util/Node.pm	2020-01-15 09:33:55.000000000 +0100
++++ /opt/IBM/tivoli/netdisco/nd2/lib/perl5/App/Netdisco/Util/Node.pm	2019-02-01 08:57:50.424374681 +0100
+@@ -5,6 +5,7 @@
+ 
+ use NetAddr::MAC;
+ use App::Netdisco::Util::Permission qw/check_acl_no check_acl_only/;
++use App::Netdisco::Util::DNS 'ipv4_from_hostname';
+ 
+ use base 'Exporter';
+ our @EXPORT = ();
+@@ -101,9 +102,8 @@
+ 
+   # VRRP
+   if ($mac->is_vrrp) {
+-      debug sprintf ' [%s] check_mac - VRRP mac [%s] - skipping',
+-        $devip, $node;
+-      return 0;
++      debug sprintf ' [%s] check_mac - VRRP mac [%s] - still including', $devip, $node;
++      #return 0;
+   }
+ 
+   # HSRP
+@@ -165,7 +165,7 @@
+ =cut
+ 
+ sub store_arp {
+-  my ($hash_ref, $now) = @_;
++  my ($hash_ref, $now, $device_ip) = @_;
+   $now ||= 'now()';
+   my $ip   = $hash_ref->{'ip'};
+   my $mac  = NetAddr::MAC->new($hash_ref->{'node'});
+@@ -193,6 +193,31 @@
+         for => 'update',
+       });
+   });
++
++
++    if (setting('arpnip_track_l3device')){
++
++        # device_ip could actually be a hostname when passed from e.g. sshcollector
++        # so we try to resolve it and use this value if necessary
++        my $device_ip_resolved = ipv4_from_hostname($device_ip);
++
++        schema('netdisco')->resultset('NodeIpL3device')
++          ->update_or_create(
++          {
++            node_mac => $mac->as_ieee,
++            node_ip => $ip,
++            device_ip => $device_ip_resolved ? $device_ip_resolved : $device_ip,
++            time_last => \$now,
++          },
++          {
++            key => 'primary',
++            for => 'update',
++          });
++
++        }
++
++
++
+ }
+ 
+ 1;

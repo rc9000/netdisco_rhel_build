@@ -1,0 +1,16 @@
+--- ../nd2/lib/perl5/App/Netdisco/Worker/Plugin/Arpnip/Nodes.pm.dist	2020-01-22 14:35:22.323021903 +0100
++++ ../nd2/lib/perl5/App/Netdisco/Worker/Plugin/Arpnip/Nodes.pm	2020-01-22 15:59:45.630386241 +0100
+@@ -26,11 +26,11 @@
+ 
+   # update node_ip with ARP and Neighbor Cache entries
+ 
+-  store_arp(\%$_, $now) for @{ vars->{'v4arps'} };
++  store_arp(\%$_, $now, $device->ip) for @{ vars->{'v4arps'} };
+   debug sprintf ' [%s] arpnip - processed %s ARP Cache entries',
+     $device->ip, scalar @{ vars->{'v4arps'} };
+ 
+-  store_arp(\%$_, $now) for @{ vars->{'v6arps'} };
++  store_arp(\%$_, $now, $device->ip) for @{ vars->{'v6arps'} };
+   debug sprintf ' [%s] arpnip - processed %s IPv6 Neighbor Cache entries',
+     $device->ip, scalar @{ vars->{'v6arps'} };
+ 
