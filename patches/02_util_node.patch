@@ -1,5 +1,5 @@
---- /opt/IBM/tivoli/netdisco/netdisco_upgrade_test/nd2/lib/perl5/App/Netdisco/Util/Node.pm	2020-01-15 09:33:55.000000000 +0100
-+++ /opt/IBM/tivoli/netdisco/nd2/lib/perl5/App/Netdisco/Util/Node.pm	2019-02-01 08:57:50.424374681 +0100
+--- Node.pm	2020-10-30 00:39:52.000000000 +0100
++++ Node.pm.new	2021-04-07 16:38:43.000000000 +0200
 @@ -5,6 +5,7 @@
  
  use NetAddr::MAC;
@@ -28,8 +28,8 @@
 +  my ($hash_ref, $now, $device_ip) = @_;
    $now ||= 'now()';
    my $ip   = $hash_ref->{'ip'};
-   my $mac  = NetAddr::MAC->new($hash_ref->{'node'});
-@@ -193,6 +193,31 @@
+   my $mac  = NetAddr::MAC->new(mac => ($hash_ref->{'node'} || ''));
+@@ -193,6 +193,27 @@
          for => 'update',
        });
    });
@@ -37,16 +37,12 @@
 +
 +    if (setting('arpnip_track_l3device')){
 +
-+        # device_ip could actually be a hostname when passed from e.g. sshcollector
-+        # so we try to resolve it and use this value if necessary
-+        my $device_ip_resolved = ipv4_from_hostname($device_ip);
-+
 +        schema('netdisco')->resultset('NodeIpL3device')
 +          ->update_or_create(
 +          {
 +            node_mac => $mac->as_ieee,
 +            node_ip => $ip,
-+            device_ip => $device_ip_resolved ? $device_ip_resolved : $device_ip,
++            device_ip => $device_ip,
 +            time_last => \$now,
 +          },
 +          {
